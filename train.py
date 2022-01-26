@@ -18,6 +18,7 @@ torch.manual_seed(42)
 from transformers import GPT2LMHeadModel,  GPT2Tokenizer, GPT2Config, GPT2LMHeadModel
 from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, AutoModelForCausalLM
 from accelerate import Accelerator
+from huggingface_hub import Repository
 
 import nltk
 nltk.download('punkt')
@@ -33,6 +34,8 @@ tokenizer.pad_token = tokenizer.eos_token
 # model = AutoModelForCausalLM.from_pretrained(checkpoint)
 model = GPT2LMHeadModel.from_pretrained(checkpoint)
 accelerator = Accelerator()
+hf_repo_dir = "./hf_repos/fine-tuned-{}".format(checkpoint)
+repo = Repository(hf_repo_dir, clone_from="ndubuisi/fine-tuned-{}".format(checkpoint))
 
 class GPT2Dataset(Dataset):
 
@@ -251,19 +254,25 @@ print("")
 print("Training complete!")
 print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
 
+# ========================================
+#               Save Model
+# ========================================
+
 try:
-    model.push_to_hub("fine-tuned-{}".format(checkpoint))
-    tokenizer.push_to_hub("fine-tuned-{}".format(checkpoint))
-except:
-    print("Unable to push model to Huggingface.")
+    if not os.path.exists(hf_repo_dir):
+        model.push_to_hub("fine-tuned-{}".format(checkpoint))
+        tokenizer.push_to_hub("fine-tuned-{}".format(checkpoint))
+    else:
+        repo.git_pull()
 
-# output_dir = './model_dir/'
+        print("Saving model to {}".format(hf_repo_dir))
 
-# if not os.path.exists(output_dir):
-#     os.makedirs(output_dir)
+        model.save_pretrained(hf_repo_dir)
+        tokenizer.save_pretrained(hf_repo_dir)
 
-# print("Saving model to %s" % output_dir)
+        repo.git_add()
+        repo.git_commit("Add model and tokenizer files")
+        repo.git_push()
 
-# model_to_save = model.module if hasattr(model, 'module') else model
-# model_to_save.save_pretrained(output_dir)
-# tokenizer.save_pretrained(output_dir)
+except Exception as ex:
+    print("Unable to push model to Huggingface: {}".format(str(ex)))
