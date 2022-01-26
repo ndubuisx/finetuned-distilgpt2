@@ -5,4 +5,3 @@ numpy==1.17.4
 torch==1.10.0
 transformers==4.15.0
 accelerate-0.5.1
-bittensor
