@@ -253,16 +253,6 @@ print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t
 
 try:
     model.push_to_hub("fine-tuned-{}".format(checkpoint))
+    tokenizer.push_to_hub("fine-tuned-{}".format(checkpoint))
 except:
     print("Unable to push model to Huggingface.")
-
-output_dir = './model_dir/'
-
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-
-print("Saving model to %s" % output_dir)
-
-model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
-model_to_save.save_pretrained(output_dir)
-tokenizer.save_pretrained(output_dir)
