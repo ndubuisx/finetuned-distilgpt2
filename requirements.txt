@@ -1,0 +1,6 @@
+-e git+https://github.com/opentensor/bittensor.git@12ee24a02a9e65d4a416e7434b8fd6b5aa3c2c3e#egg=bittensor
+pandas==0.25.3
+nltk==3.6.7
+numpy==1.17.4
+torch==1.10.0
+transformers==4.15.0
